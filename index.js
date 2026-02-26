@@ -6,6 +6,10 @@ const PORT = process.env.PORT || 3000;
 const app = express();
 app.use(express.json());
 
+app.get("/", (req, res) => {
+    res.send("Welcome to the Question AI API");
+});
+
 app.post("/ask", async (req, res) => {
     const question = req.body.question;
 
