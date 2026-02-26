@@ -27,7 +27,7 @@ const embeddings = new GeminiEmbedding768({
 const pinecone = new Pinecone();
 const pineconeIndex = pinecone.Index(process.env.PINECONE_INDEX_NAME);
 
-async function chatting(question){
+export async function chatting(question){
 // Question ki embedding kro
    const queryVector = await embeddings.embedQuery(question); 
 // Pinecone index se similar documents find kro
