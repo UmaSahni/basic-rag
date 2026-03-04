@@ -1,6 +1,7 @@
 import express from "express";
 import * as dotenv from "dotenv";
 import { chatting } from "./query.js";
+import uploadRoutes from "./routes/uploadRoutes.js";
 dotenv.config();
 const PORT = process.env.PORT || 3000;
 const app = express();
@@ -9,6 +10,8 @@ app.use(express.json());
 app.get("/", (req, res) => {
     res.send("Welcome to the Question AI API");
 });
+// routes
+app.use("/api", uploadRoutes);
 
 app.post("/ask", async (req, res) => {
     const question = req.body.question;
