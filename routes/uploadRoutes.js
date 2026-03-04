@@ -1,11 +1,13 @@
 import express from "express";
 import { uploadPDF } from "../middleware/multer.js";
 import { indexing } from "../indexing.js";
+import { uploadInMongoDB } from "../controllers/files.controllers.js";
+import { authMiddleware } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
 // single("pdf") → must match frontend field name
-router.post("/upload", uploadPDF.single("pdf"),
+router.post("/upload", authMiddleware, uploadPDF.single("pdf"),
     async (req, res) => {
         try {
             if (!req.file) {
@@ -15,10 +17,11 @@ router.post("/upload", uploadPDF.single("pdf"),
             }
 
             await indexing(req.file.path);
+            const newFile = await uploadInMongoDB(req.file, req.userId);
 
             res.json({
                 message: "PDF uploaded and indexed successfully",
-                file: req.file.filename,
+                file: newFile,
                 path: req.file.path,
             });
         } catch (error) {
