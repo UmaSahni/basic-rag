@@ -7,9 +7,8 @@ import { PineconeStore } from '@langchain/pinecone';
 import { Pinecone } from '@pinecone-database/pinecone';
 
 
-async function indexing () {
+export async function indexing(PDF_PATH) {
     // Step -1 : File ko load karna
-    const PDF_PATH = './1.pdf';
     const pdfLoader = new PDFLoader(PDF_PATH);
     const rawDocs = await pdfLoader.load();
     // console.log(rawDocs.length);\
@@ -59,5 +58,4 @@ async function indexing () {
         throw err;
     }
 }
-
-indexing()
+// indexing();

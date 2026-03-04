@@ -1,4 +1,4 @@
-import readlineSync from 'readline-sync';
+
 import { GeminiEmbedding768 } from './gemini-embedding-768.js';
 import * as dotenv from 'dotenv';
 dotenv.config();
@@ -79,18 +79,5 @@ Answer:
         context: context,
         question: question,
     }); 
-
-    console.log(answer);
-
-
+return answer;
 }
-
-
-async function main() {
-    const userProblem = readlineSync.question("Ask me anything--> ");
-    await chatting(userProblem);
-    main();
-}
-
-
-main();
