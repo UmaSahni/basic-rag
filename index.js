@@ -1,4 +1,5 @@
 import express from "express";
+import cors from "cors";
 import * as dotenv from "dotenv";
 import { chatting } from "./query.js";
 import uploadRoutes from "./routes/uploadRoutes.js";
@@ -12,13 +13,18 @@ dotenv.config();
 
 const PORT = process.env.PORT || 3000;
 const app = express();
+app.use(cors({
+    origin: "*", // Or use 'http://localhost:3000'
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"]
+}));
 app.use(express.json());
 
 app.get("/", (req, res) => {
     res.send("Welcome to the Question AI API");
 });
 
-app.use("/api" , usersRoutes);
+app.use("/api", usersRoutes);
 
 app.use("/api", authMiddleware, [uploadRoutes, filesRoutes]);
 
