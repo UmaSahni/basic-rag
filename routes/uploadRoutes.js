@@ -3,6 +3,7 @@ import { uploadPDF } from "../middleware/multer.js";
 import { indexing } from "../indexing.js";
 import { uploadInMongoDB } from "../controllers/files.controllers.js";
 import { authMiddleware } from "../middleware/auth.middleware.js";
+import { File } from "../model/files.model.js";
 
 const router = express.Router();
 
@@ -25,8 +26,11 @@ router.post("/upload", authMiddleware, uploadPDF.single("pdf"),
             });
 
             // Run indexing asynchronously in the background
-            indexing(req.file.path).catch(err => {
+            indexing(req.file.path).then(async () => {
+                await File.findByIdAndUpdate(newFile._id, { indexingStatus: "completed" });
+            }).catch(async (err) => {
                 console.error("Error during asynchronous indexing:", err);
+                await File.findByIdAndUpdate(newFile._id, { indexingStatus: "failed" });
             });
         } catch (error) {
             res.status(500).json({

@@ -13,9 +13,26 @@ const initialState = {
     ],
     isUploading: false,
     isAsking: false,
+    isIndexing: false,
     uploadedFile: null,
     error: null,
 };
+
+export const checkIndexStatus = createAsyncThunk(
+    'chat/checkIndexStatus',
+    async (fileId, { getState, rejectWithValue }) => {
+        try {
+            const { auth } = getState();
+            const token = auth.token;
+            const response = await axios.get(`${API_BASE}/api/get/${fileId}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            return response.data.file;
+        } catch (err) {
+            return rejectWithValue(err.response?.data?.message || 'Failed to check index status');
+        }
+    }
+);
 
 export const uploadPdf = createAsyncThunk(
     'chat/uploadPdf',
@@ -72,12 +89,8 @@ export const chatSlice = createSlice({
             })
             .addCase(uploadPdf.fulfilled, (state, action) => {
                 state.isUploading = false;
+                state.isIndexing = true;
                 state.uploadedFile = action.payload.file;
-                state.messages.push({
-                    id: Date.now(),
-                    role: 'ai',
-                    text: `File successfully uploaded! (Indexing may be running in the background for large files). What would you like to know about it?`
-                });
             })
             .addCase(uploadPdf.rejected, (state, action) => {
                 state.isUploading = false;
@@ -88,6 +101,26 @@ export const chatSlice = createSlice({
                     text: `Error uploading file: ${action.payload}`
                 });
             })
+            // Check Index Status
+            .addCase(checkIndexStatus.fulfilled, (state, action) => {
+                const status = action.payload.indexingStatus;
+                if (status === "completed" && state.isIndexing) {
+                    state.isIndexing = false;
+                    state.messages.push({
+                        id: Date.now(),
+                        role: 'ai',
+                        text: `File successfully uploaded and indexed! What would you like to know about it?`
+                    });
+                } else if (status === "failed" && state.isIndexing) {
+                    state.isIndexing = false;
+                    state.error = "Indexing failed on the server.";
+                    state.messages.push({
+                        id: Date.now(),
+                        role: 'ai',
+                        text: `Error: Background indexing failed.`
+                    });
+                }
+            })
             // Ask question
             .addCase(askQuestion.pending, (state) => {
                 state.isAsking = true;
@@ -95,10 +128,17 @@ export const chatSlice = createSlice({
             })
             .addCase(askQuestion.fulfilled, (state, action) => {
                 state.isAsking = false;
+
+                // Fallback to active session variable if the AI didn't return an exact source array
+                const sourceFile = action.payload.sources?.length
+                    ? { filename: action.payload.sources[0] }
+                    : state.uploadedFile;
+
                 state.messages.push({
                     id: Date.now(),
                     role: 'ai',
-                    text: action.payload.answer
+                    text: action.payload.answer,
+                    source: sourceFile
                 });
             })
             .addCase(askQuestion.rejected, (state, action) => {

@@ -24,6 +24,9 @@ app.get("/", (req, res) => {
     res.send("Welcome to the Question AI API");
 });
 
+// Serve the uploads directory to the public so the frontend can link to the raw PDFs directly
+app.use("/uploads", express.static("uploads"));
+
 app.use("/api", usersRoutes);
 
 app.use("/api", authMiddleware, [uploadRoutes, filesRoutes]);
@@ -31,8 +34,8 @@ app.use("/api", authMiddleware, [uploadRoutes, filesRoutes]);
 app.post("/ask", async (req, res) => {
     const question = req.body.question;
     try {
-        const answer = await chatting(question);
-        res.json({ answer });
+        const payload = await chatting(question);
+        res.json(payload);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
