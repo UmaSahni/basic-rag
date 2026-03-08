@@ -14,6 +14,11 @@ const fileSchema = new mongoose.Schema({
         ref: "User",
         required: true,
     },
+    indexingStatus: {
+        type: String,
+        enum: ["pending", "completed", "failed"],
+        default: "pending"
+    }
 });
 
 export const File = mongoose.model("File", fileSchema);
