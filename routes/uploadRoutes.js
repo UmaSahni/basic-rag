@@ -16,13 +16,17 @@ router.post("/upload", authMiddleware, uploadPDF.single("pdf"),
                 });
             }
 
-            await indexing(req.file.path);
             const newFile = await uploadInMongoDB(req.file, req.userId);
 
             res.json({
-                message: "PDF uploaded and indexed successfully",
+                message: "Document scheduled for indexing",
                 file: newFile,
                 path: req.file.path,
+            });
+
+            // Run indexing asynchronously in the background
+            indexing(req.file.path).catch(err => {
+                console.error("Error during asynchronous indexing:", err);
             });
         } catch (error) {
             res.status(500).json({

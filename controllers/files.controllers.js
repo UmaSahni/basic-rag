@@ -17,21 +17,28 @@ export const uploadInMongoDB = async (file, userId) => {
     }
 };
 
-export const getFileFromMongoDB = async (id) => {
+export const getFileFromMongoDB = async (req, res) => {
     try {
-        const file = await File.findById(id);
-        return file;
+        const file = await File.findById(req.params.id);
+        if (!file) {
+            return res.status(404).json({ message: "File not found" });
+        }
+        res.status(200).json({ file });
     } catch (error) {
         console.error("Error getting file from MongoDB:", error);
-        throw error;
+        res.status(500).json({ message: "Error getting file", error: error.message });
     }
 };
 
-export const deleteFileFromMongoDB = async (id) => {
+export const deleteFileFromMongoDB = async (req, res) => {
     try {
-        await File.findByIdAndDelete(id);
+        const deletedFile = await File.findByIdAndDelete(req.params.id);
+        if (!deletedFile) {
+            return res.status(404).json({ message: "File not found" });
+        }
+        res.status(200).json({ message: "File deleted successfully" });
     } catch (error) {
         console.error("Error deleting file from MongoDB:", error);
-        throw error;
+        res.status(500).json({ message: "Error deleting file", error: error.message });
     }
 };
